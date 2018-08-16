@@ -1,4 +1,4 @@
-
+# https://www.kaggle.com/amadeus1996/fruits-360-transfer-learning-using-keras/notebook
 # Install dependencies
 #!pip install keras
 #!pip install plotly
@@ -54,6 +54,10 @@ img_width, img_height = 224, 224
 
 train_data_dir = './fruits-360/Training/'
 validation_data_dir = './fruits-360/Test/'
+
+train_data_dir = './mldx2/Training'
+validation_data_dir = './mldx2/Test'
+
 nb_train_samples = 31688
 nb_validation_samples = 10657
 batch_size = 16
@@ -122,10 +126,10 @@ iplot(fig)
 #import inception with pre-trained weights. do not include fully #connected layers
 inception_base = applications.ResNet50(weights='imagenet', include_top=False)
 
-print("!@#~#~!@!@#$#$@#$@#$@#$@$%^&*()(*&^%$#@#$%^&*(*&^%$#@")
-print("Inception")
-print("!@#~#~!@!@#$#$@#$@#$@#$@$%^&*()(*&^%$#@#$%^&*(*&^%$#@")
-print(inception_base.summary())
+#print("!@#~#~!@!@#$#$@#$@#$@#$@$%^&*()(*&^%$#@#$%^&*(*&^%$#@")
+#print("Inception")
+#print("!@#~#~!@!@#$#$@#$@#$@#$@$%^&*()(*&^%$#@#$%^&*(*&^%$#@")
+#print(inception_base.summary())
 print("!@#~#~!@!@#$#$@#$@#$@#$@$%^&*()(*&^%$#@#$%^&*(*&^%$#@")
 
 # TODO: Put the fruits images in data management
