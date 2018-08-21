@@ -12,6 +12,16 @@ Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/mast
 #!jupyter nbconvert --to script config_template.ipynb
 
 
+from keras import applications
+from keras.preprocessing.image import ImageDataGenerator
+from keras import optimizers
+from keras.models import Sequential, Model
+from keras.layers import Dense, GlobalAveragePooling2D
+from keras.layers import Activation, Dropout, Flatten, Dense
+from keras import backend
+import matplotlib.pyplot as plt
+
+# MissingLink snippet
 import missinglink
 
 OWNER_ID ='5cbb4c75-b52a-4386-af35-ce9ba735a4bb'
@@ -22,24 +32,12 @@ missinglink_callback.set_properties(
     display_name='Keras convolutional neural network',
     description='Two dimensional convolutional neural network')
 
-import os
-from os.path import join, exists, expanduser
-
-from keras import applications
-from keras.preprocessing.image import ImageDataGenerator
-from keras import optimizers
-from keras.models import Sequential, Model
-from keras.layers import Dense, GlobalAveragePooling2D
-from keras.layers import Activation, Dropout, Flatten, Dense
-from keras import backend
 
 # Dimensions of images need to match the models we're transfer-learning from.
 # The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
 img_width, img_height = 224, 224
-
-train_data_dir = './fruits-360/Training/'
-validation_data_dir = './fruits-360/Test/'
-
+# train_data_dir = './fruits-360/Training/'
+# validation_data_dir = './fruits-360/Test/'
 train_data_dir = './mldx2/Training'
 validation_data_dir = './mldx2/Test'
 
@@ -54,11 +52,6 @@ train_datagen = ImageDataGenerator(
 # Convert RGB [0, 255] to [0, 1.0]
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 
-# TODO: How do I get 10% of the data in `flow_from_directory`?
-#           Stackoverflow question?
-#           Blog post?
-#           Hash or random?
-# TODO: read about overfitting early for understanding if my architecture works.
 
 train_generator = train_datagen.flow_from_directory(
     train_data_dir,
@@ -75,7 +68,6 @@ validation_generator = test_datagen.flow_from_directory(
 import pandas as pd
 from plotly.offline import init_notebook_mode, iplot
 import plotly.graph_objs as go
-init_notebook_mode(connected=True)
 
 training_data = pd.DataFrame(train_generator.classes, columns=['classes'])
 testing_data = pd.DataFrame(validation_generator.classes, columns=['classes'])
@@ -146,29 +138,25 @@ inception_transfer.compile(loss='categorical_crossentropy',
 
 history_pretrained = inception_transfer.fit_generator(
     train_generator,
-    epochs=5, shuffle = True, verbose = 1, validation_data = validation_generator,
+    epochs=5,
+    shuffle=True,
+    verbose=1,
+    validation_data=validation_generator,
     callbacks=[missinglink_callback])
 
-import matplotlib.pyplot as plt
-# summarize history for accuracy
-plt.plot(history_pretrained.history['val_acc'])
-# plt.plot(history_vanilla.history['val_acc'])
-plt.title('model accuracy')
-plt.ylabel('accuracy')
-plt.xlabel('epoch')
-# plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
-plt.show()
-# summarize history for loss
-plt.plot(history_pretrained.history['val_loss'])
-# plt.plot(history_vanilla.history['val_loss'])
-plt.title('model loss')
-plt.ylabel('loss')
-plt.xlabel('epoch')
-# plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
-plt.show()
-
-# from IPython.lib import kernel
-# print(dir(kernel))
-# print(kernel.get_connection_info())
-# print(kernel.get_connection_file())
+# # summarize history for accuracy
+# plt.plot(history_pretrained.history['val_acc'])
+# # plt.plot(history_vanilla.history['val_acc'])
+# plt.title('model accuracy')
+# plt.ylabel('accuracy')
+# plt.xlabel('epoch')
+# # plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
+# plt.show()
+# # summarize history for loss
+# plt.plot(history_pretrained.history['val_loss'])
+# # plt.plot(history_vanilla.history['val_loss'])
+# plt.title('model loss')
+# plt.ylabel('loss')
+# plt.xlabel('epoch')
+# plt.show()
 
