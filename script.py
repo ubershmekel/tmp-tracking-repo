@@ -2,15 +2,7 @@
 Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/master.zip
 """
 
-# https://www.kaggle.com/amadeus1996/fruits-360-transfer-learning-using-keras/notebook
-# Install dependencies
-#!pip install keras
-#!pip install plotly
-#!pip install missinglink
-
-
-# export to py
-#!jupyter nbconvert --to script config_template.ipynb
+from sys import platform
 
 
 from keras import applications
@@ -20,10 +12,6 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend
-#import matplotlib.pyplot as plt
-# import pandas as pd
-# from plotly.offline import init_notebook_mode, iplot
-# import plotly.graph_objs as go
 
 # MissingLink snippet
 import missinglink
@@ -37,6 +25,7 @@ missinglink_callback.set_properties(
     description='Two dimensional convolutional neural network')
 
 
+
 # Dimensions of images need to match the models we're transfer-learning from.
 # The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
 img_width, img_height = 224, 224
@@ -44,6 +33,19 @@ img_width, img_height = 224, 224
 # validation_data_dir = './fruits-360/Test/'
 train_data_dir = './data/mldx2/Training'
 validation_data_dir = './data/mldx2/Test'
+
+
+if platform == "linux" or platform == "linux2":
+    # linux resource management
+    train_data_dir = '/data/Training'
+    validation_data_dir = '/data/Test'
+elif platform == "darwin":
+    # OS X
+    pass
+elif platform == "win32":
+    # Windows...
+    pass
+
 
 batch_size = 16
 
