@@ -1,3 +1,7 @@
+"""
+Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/master.zip
+"""
+
 # https://www.kaggle.com/amadeus1996/fruits-360-transfer-learning-using-keras/notebook
 # Install dependencies
 #!pip install keras
@@ -19,7 +23,6 @@ missinglink_callback.set_properties(
     description='Two dimensional convolutional neural network')
 
 import os
-from os import listdir, makedirs
 from os.path import join, exists, expanduser
 
 from keras import applications
@@ -29,27 +32,9 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend
-import tensorflow as tf
-# Any results you write to the current directory are saved as output.
 
-# This cell is only relevant to kaggle notebooks
-
-#cache_dir = expanduser(join('~', '.keras'))
-#if not exists(cache_dir):
-#    makedirs(cache_dir)
-#models_dir = join(cache_dir, 'models')
-#if not exists(models_dir):
-#    makedirs(models_dir)
-
-#!cp ../input/keras-pretrained-models/*notop* ~/.keras/models/
-#!cp ../input/keras-pretrained-models/imagenet_class_index.json ~/.keras/models/
-#!cp ../input/keras-pretrained-models/resnet50* ~/.keras/models/
-#print("Available Pretrained Models:\n")
-#!ls ~/.keras/models
-
-# dimensions of our images.
-# We set the img_width and img_height according to the pretrained models we are
-# going to use. The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
+# Dimensions of images need to match the models we're transfer-learning from.
+# The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
 img_width, img_height = 224, 224
 
 train_data_dir = './fruits-360/Training/'
@@ -58,8 +43,6 @@ validation_data_dir = './fruits-360/Test/'
 train_data_dir = './mldx2/Training'
 validation_data_dir = './mldx2/Test'
 
-nb_train_samples = 31688
-nb_validation_samples = 10657
 batch_size = 16
 
 train_datagen = ImageDataGenerator(
@@ -68,7 +51,7 @@ train_datagen = ImageDataGenerator(
     zoom_range=0.2,
     horizontal_flip=True)
 
-# RGB 255
+# Convert RGB [0, 255] to [0, 1.0]
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 
 # TODO: How do I get 10% of the data in `flow_from_directory`?
@@ -157,37 +140,11 @@ x = Dense(512, activation='relu')(x)
 # and a fully connected output/classification layer
 predictions = Dense(len(class_names_list), activation='softmax')(x)
 # create the full network so we can train on it
-inception_transfer_vanilla = Model(inputs=inception_base_vanilla.input, outputs=predictions)
-
 inception_transfer.compile(loss='categorical_crossentropy',
               optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
               metrics=['accuracy'])
 
-inception_transfer_vanilla.compile(loss='categorical_crossentropy',
-              optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
-              metrics=['accuracy'])
-
-from tensorflow.python.client import device_lib
-
-print('----------- devices ------------')
-print(device_lib.list_local_devices())
-print('----------- devices ------------')
-
-import tensorflow as tf
-
-#model.fit(
-#    x_train, y_train, batch_size=BATCH_SIZE,
-#    nb_epoch=EPOCHS, validation_split=VALIDATION_SPLIT,
-#    callbacks=[missinglink_callback])
-
-with tf.device("/device:GPU:0"):
-    history_pretrained = inception_transfer.fit_generator(
-    train_generator,
-    epochs=5, shuffle = True, verbose = 1, validation_data = validation_generator,
-    callbacks=[missinglink_callback])
-
-with tf.device("/device:GPU:0"):
-    history_vanilla = inception_transfer_vanilla.fit_generator(
+history_pretrained = inception_transfer.fit_generator(
     train_generator,
     epochs=5, shuffle = True, verbose = 1, validation_data = validation_generator,
     callbacks=[missinglink_callback])
@@ -195,23 +152,23 @@ with tf.device("/device:GPU:0"):
 import matplotlib.pyplot as plt
 # summarize history for accuracy
 plt.plot(history_pretrained.history['val_acc'])
-plt.plot(history_vanilla.history['val_acc'])
+# plt.plot(history_vanilla.history['val_acc'])
 plt.title('model accuracy')
 plt.ylabel('accuracy')
 plt.xlabel('epoch')
-plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
+# plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
 plt.show()
 # summarize history for loss
 plt.plot(history_pretrained.history['val_loss'])
-plt.plot(history_vanilla.history['val_loss'])
+# plt.plot(history_vanilla.history['val_loss'])
 plt.title('model loss')
 plt.ylabel('loss')
 plt.xlabel('epoch')
-plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
+# plt.legend(['Pretrained', 'Vanilla'], loc='upper left')
 plt.show()
 
-from IPython.lib import kernel
-print(dir(kernel))
-print(kernel.get_connection_info())
-print(kernel.get_connection_file())
+# from IPython.lib import kernel
+# print(dir(kernel))
+# print(kernel.get_connection_info())
+# print(kernel.get_connection_file())
 
