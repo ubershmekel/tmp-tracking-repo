@@ -35,16 +35,16 @@ train_data_dir = './data/mldx2/Training'
 validation_data_dir = './data/mldx2/Test'
 
 
-if platform == "linux" or platform == "linux2":
-    # linux resource management
-    train_data_dir = '/data/Training'
-    validation_data_dir = '/data/Test'
-elif platform == "darwin":
-    # OS X
-    pass
-elif platform == "win32":
-    # Windows...
-    pass
+# if platform == "linux" or platform == "linux2":
+#     # linux resource management
+#     train_data_dir = '/data/Training'
+#     validation_data_dir = '/data/Test'
+# elif platform == "darwin":
+#     # OS X
+#     pass
+# elif platform == "win32":
+#     # Windows...
+#     pass
 
 
 batch_size = 16
