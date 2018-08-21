@@ -6,6 +6,7 @@ Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/mast
 # Install dependencies
 #!pip install keras
 #!pip install plotly
+#!pip install missinglink
 
 
 # export to py
@@ -41,8 +42,8 @@ missinglink_callback.set_properties(
 img_width, img_height = 224, 224
 # train_data_dir = './fruits-360/Training/'
 # validation_data_dir = './fruits-360/Test/'
-train_data_dir = './mldx2/Training'
-validation_data_dir = './mldx2/Test'
+train_data_dir = './data/mldx2/Training'
+validation_data_dir = './data/mldx2/Test'
 
 batch_size = 16
 
@@ -68,6 +69,8 @@ validation_generator = test_datagen.flow_from_directory(
     batch_size=batch_size,
     class_mode='categorical')
 
+class_names_list = list(train_generator.class_indices.keys())
+
 def create_stack_bar_data(col, df):
     aggregated = df[col].value_counts().sort_index()
     x_values = aggregated.index.tolist()
@@ -81,7 +84,6 @@ def plot():
     x1, y1 = create_stack_bar_data('classes', training_data)
     #x1 = list(train_generator.class_indices.keys())
     # TODO: is class_names_list in the right order?
-    class_names_list = list(train_generator.class_indices.keys())
 
     trace1 = go.Bar(x=class_names_list, y=y1, opacity=0.75, name="Class Count")
     layout = dict(height=400, width=1200, title='Class Distribution in Training Data', legend=dict(orientation="h"), 
