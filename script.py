@@ -19,7 +19,10 @@ from keras.models import Sequential, Model
 from keras.layers import Dense, GlobalAveragePooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
+# import pandas as pd
+# from plotly.offline import init_notebook_mode, iplot
+# import plotly.graph_objs as go
 
 # MissingLink snippet
 import missinglink
@@ -65,38 +68,35 @@ validation_generator = test_datagen.flow_from_directory(
     batch_size=batch_size,
     class_mode='categorical')
 
-import pandas as pd
-from plotly.offline import init_notebook_mode, iplot
-import plotly.graph_objs as go
-
-training_data = pd.DataFrame(train_generator.classes, columns=['classes'])
-testing_data = pd.DataFrame(validation_generator.classes, columns=['classes'])
-
 def create_stack_bar_data(col, df):
     aggregated = df[col].value_counts().sort_index()
     x_values = aggregated.index.tolist()
     y_values = aggregated.values.tolist()
     return x_values, y_values
 
-x1, y1 = create_stack_bar_data('classes', training_data)
-#x1 = list(train_generator.class_indices.keys())
-# TODO: is class_names_list in the right order?
-class_names_list = list(train_generator.class_indices.keys())
+def plot():
+    training_data = pd.DataFrame(train_generator.classes, columns=['classes'])
+    testing_data = pd.DataFrame(validation_generator.classes, columns=['classes'])
 
-trace1 = go.Bar(x=class_names_list, y=y1, opacity=0.75, name="Class Count")
-layout = dict(height=400, width=1200, title='Class Distribution in Training Data', legend=dict(orientation="h"), 
-                yaxis = dict(title = 'Class Count'))
-fig = go.Figure(data=[trace1], layout=layout)
-iplot(fig)
+    x1, y1 = create_stack_bar_data('classes', training_data)
+    #x1 = list(train_generator.class_indices.keys())
+    # TODO: is class_names_list in the right order?
+    class_names_list = list(train_generator.class_indices.keys())
 
-x1, y1 = create_stack_bar_data('classes', testing_data)
-train_class_names = list(validation_generator.class_indices.keys())
+    trace1 = go.Bar(x=class_names_list, y=y1, opacity=0.75, name="Class Count")
+    layout = dict(height=400, width=1200, title='Class Distribution in Training Data', legend=dict(orientation="h"), 
+                    yaxis = dict(title = 'Class Count'))
+    fig = go.Figure(data=[trace1], layout=layout)
+    iplot(fig)
 
-trace1 = go.Bar(x=train_class_names, y=y1, opacity=0.75, name="Class Count")
-layout = dict(height=400, width=1100, title='Class Distribution in Validation Data', legend=dict(orientation="h"), 
-                yaxis = dict(title = 'Class Count'))
-fig = go.Figure(data=[trace1], layout=layout)
-iplot(fig)
+    x1, y1 = create_stack_bar_data('classes', testing_data)
+    train_class_names = list(validation_generator.class_indices.keys())
+
+    trace1 = go.Bar(x=train_class_names, y=y1, opacity=0.75, name="Class Count")
+    layout = dict(height=400, width=1100, title='Class Distribution in Validation Data', legend=dict(orientation="h"), 
+                    yaxis = dict(title = 'Class Count'))
+    fig = go.Figure(data=[trace1], layout=layout)
+    iplot(fig)
 
 #import inception with pre-trained weights. do not include fully #connected layers
 inception_base = applications.ResNet50(weights='imagenet', include_top=False)
