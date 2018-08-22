@@ -29,22 +29,24 @@ missinglink_callback.set_properties(
 # Dimensions of images need to match the models we're transfer-learning from.
 # The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
 img_width, img_height = 224, 224
+
+
+data_root = './data'
+
+if platform == "linux" or platform == "linux2":
+    # linux resource management
+    data_root = '/data'
+elif platform == "darwin":
+    # OS X
+    pass
+elif platform == "win32":
+    # Windows...
+    pass
+
 # train_data_dir = './fruits-360/Training/'
 # validation_data_dir = './fruits-360/Test/'
-train_data_dir = './data/mldx2/Training'
-validation_data_dir = './data/mldx2/Test'
-
-
-# if platform == "linux" or platform == "linux2":
-#     # linux resource management
-#     train_data_dir = '/data/Training'
-#     validation_data_dir = '/data/Test'
-# elif platform == "darwin":
-#     # OS X
-#     pass
-# elif platform == "win32":
-#     # Windows...
-#     pass
+train_data_dir = data_root + '/mldx2/Training'
+validation_data_dir = data_root + '/mldx2/Test'
 
 
 batch_size = 16
