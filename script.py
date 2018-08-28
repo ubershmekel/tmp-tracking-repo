@@ -3,7 +3,7 @@ Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/mast
 """
 
 from sys import platform
-
+import os
 
 from keras import applications
 from keras.preprocessing.image import ImageDataGenerator
@@ -16,38 +16,37 @@ from keras import backend
 # MissingLink snippet
 import missinglink
 
+EXPERIMENT_NAME = os.environ("EXPERIMENT_NAME", "Code Sample")
+EXPERIMENT_NOTE = os.environ("EXPERIMENT_NOTE", "")
+DATA_ROOT = os.environ.get('DATA_ROOT', '/Users/yuval.g/sra/data')
+EPOCHS = int(os.environ.get("EPOCHS", "5"))
+
 OWNER_ID ='5cbb4c75-b52a-4386-af35-ce9ba735a4bb'
 PROJECT_TOKEN ='ejHztrwUToiIucAA'
 missinglink_callback = missinglink.KerasCallback(
     owner_id=OWNER_ID, project_token=PROJECT_TOKEN)
 missinglink_callback.set_properties(
-    display_name='Keras convolutional neural network',
-    description='Two dimensional convolutional neural network')
+    display_name=EXPERIMENT_NAME,
+    description=EXPERIMENT_NOTE)
 
+# if platform == "linux" or platform == "linux2":
+#     # linux resource management
+#     DATA_ROOT = '/data'
+# elif platform == "darwin":
+#     # OS X
+#     pass
+# elif platform == "win32":
+#     # Windows...
+#     pass
 
+# train_data_dir = './fruits-360/Training/'
+# validation_data_dir = './fruits-360/Test/'
+train_data_dir = DATA_ROOT + '/mldx2/Training'
+validation_data_dir = DATA_ROOT + '/mldx2/Test'
 
 # Dimensions of images need to match the models we're transfer-learning from.
 # The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
 img_width, img_height = 224, 224
-
-
-data_root = './data'
-
-if platform == "linux" or platform == "linux2":
-    # linux resource management
-    data_root = '/data'
-elif platform == "darwin":
-    # OS X
-    pass
-elif platform == "win32":
-    # Windows...
-    pass
-
-# train_data_dir = './fruits-360/Training/'
-# validation_data_dir = './fruits-360/Test/'
-train_data_dir = data_root + '/mldx2/Training'
-validation_data_dir = data_root + '/mldx2/Test'
-
 
 batch_size = 16
 
@@ -125,30 +124,35 @@ x = Dense(512, activation='relu')(x)
 # and a fully connected output/classification layer
 predictions = Dense(len(class_names_list), activation='softmax')(x)
 # create the full network so we can train on it
-inception_transfer = Model(inputs=inception_base.input, outputs=predictions)
+inception_transfer_model = Model(inputs=inception_base.input, outputs=predictions)
 
 #import inception with pre-trained weights. do not include fully #connected layers
-inception_base_vanilla = applications.ResNet50(weights=None, include_top=False)
+#inception_base_vanilla = applications.ResNet50(weights=None, include_top=False)
 
 # add a global spatial average pooling layer
-x = inception_base_vanilla.output
-x = GlobalAveragePooling2D()(x)
+#x = inception_base_vanilla.output
+#x = GlobalAveragePooling2D()(x)
 # add a fully-connected layer
-x = Dense(512, activation='relu')(x)
+#x = Dense(512, activation='relu')(x)
 # and a fully connected output/classification layer
-predictions = Dense(len(class_names_list), activation='softmax')(x)
+#predictions = Dense(len(class_names_list), activation='softmax')(x)
+
 # create the full network so we can train on it
-inception_transfer.compile(loss='categorical_crossentropy',
+inception_transfer_model.compile(loss='categorical_crossentropy',
               optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
               metrics=['accuracy'])
 
-history_pretrained = inception_transfer.fit_generator(
+history_pretrained = inception_transfer_model.fit_generator(
     train_generator,
-    epochs=5,
+    epochs=EPOCHS,
     shuffle=True,
     verbose=1,
     validation_data=validation_generator,
     callbacks=[missinglink_callback])
+
+# evaluate the model
+#scores = inception_transfer_model.evaluate(X, Y)
+#print("\n%s: %.2f%%" % (inception_transfer_model.metrics_names[1], scores[1]*100))
 
 # # summarize history for accuracy
 # plt.plot(history_pretrained.history['val_acc'])
