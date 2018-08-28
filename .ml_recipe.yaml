@@ -1,0 +1,7 @@
+command:
+- 'EPOCHS=10 DATA_ROOT=/data EXPERIMENT_NOTE=mobilenet226 /code/remote-script.sh'
+org: yuval
+project: 5686084218388480
+data_volume: 5685154290860032
+data_query: '@version:ecc29bb3531f39963c16f8578f58c0466a4d7143 @seed:1337 @split:0.2:0.2:0.6 NOT class:test-multiple_fruits'
+data_dest: '/data/$phase/$class'
