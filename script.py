@@ -16,9 +16,9 @@ from keras import backend
 # MissingLink snippet
 import missinglink
 
-EXPERIMENT_NAME = os.environ("EXPERIMENT_NAME", "Code Sample")
-EXPERIMENT_NOTE = os.environ("EXPERIMENT_NOTE", "")
-DATA_ROOT = os.environ.get('DATA_ROOT', '/Users/yuval.g/sra/data')
+EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "Code Sample")
+EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
+DATA_ROOT = os.environ.get('DATA_ROOT', os.path.expanduser('~/sra/data/mldx9'))
 EPOCHS = int(os.environ.get("EPOCHS", "5"))
 
 OWNER_ID ='5cbb4c75-b52a-4386-af35-ce9ba735a4bb'
@@ -42,7 +42,7 @@ missinglink_callback.set_properties(
 # train_data_dir = './fruits-360/Training/'
 # validation_data_dir = './fruits-360/Test/'
 train_data_dir = DATA_ROOT + '/train'
-validation_data_dir = DATA_ROOT + '/validate'
+validation_data_dir = DATA_ROOT + '/validation'
 test_data_dir = DATA_ROOT + '/test'
 
 # Dimensions of images need to match the models we're transfer-learning from.
@@ -80,6 +80,14 @@ validation_generator = test_validate_datagen.flow_from_directory(
     class_mode='categorical')
 
 class_names_list = list(train_generator.class_indices.keys())
+test_class_names_list = list(test_generator.class_indices.keys())
+validation_class_names_list = list(validation_generator.class_indices.keys())
+
+#print(f"train classes: {len(class_names_list)}")
+#print(f"test classes: {len(test_class_names_list)}")
+#print(f"validattion classes: {len(validation_class_names_list)}")
+
+print(set(class_names_list) - set(test_class_names_list))
 
 def create_stack_bar_data(col, df):
     aggregated = df[col].value_counts().sort_index()
@@ -161,9 +169,10 @@ history_pretrained = inception_transfer_model.fit_generator(
 #scores = inception_transfer_model.evaluate_generator(test_generator)
 #print("\n%s: %.2f%%" % (inception_transfer_model.metrics_names[1], scores[1]*100))
 with missinglink_callback.test(inception_transfer_model):
-    score = model.evaluate_generator(test_generator)
+    score = inception_transfer_model.evaluate_generator(test_generator, steps=len(test_generator))
     print('Test score:', score[0])
     print('Test accuracy:', score[1])
+    print("Metrics: {}".format(inception_transfer_model.metrics_names))
 
 
 # # summarize history for accuracy
