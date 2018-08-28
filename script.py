@@ -41,8 +41,9 @@ missinglink_callback.set_properties(
 
 # train_data_dir = './fruits-360/Training/'
 # validation_data_dir = './fruits-360/Test/'
-train_data_dir = DATA_ROOT + '/mldx2/Training'
-validation_data_dir = DATA_ROOT + '/mldx2/Test'
+train_data_dir = DATA_ROOT + '/train'
+validation_data_dir = DATA_ROOT + '/validate'
+test_data_dir = DATA_ROOT + '/test'
 
 # Dimensions of images need to match the models we're transfer-learning from.
 # The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
@@ -57,7 +58,7 @@ train_datagen = ImageDataGenerator(
     horizontal_flip=True)
 
 # Convert RGB [0, 255] to [0, 1.0]
-test_datagen = ImageDataGenerator(rescale=1. / 255)
+test_validate_datagen = ImageDataGenerator(rescale=1. / 255)
 
 
 train_generator = train_datagen.flow_from_directory(
@@ -66,7 +67,13 @@ train_generator = train_datagen.flow_from_directory(
     batch_size=batch_size,
     class_mode='categorical')
 
-validation_generator = test_datagen.flow_from_directory(
+test_generator = test_validate_datagen.flow_from_directory(
+    test_data_dir,
+    target_size=(img_height, img_width),
+    batch_size=batch_size,
+    class_mode='categorical')
+
+validation_generator = test_validate_datagen.flow_from_directory(
     validation_data_dir,
     target_size=(img_height, img_width),
     batch_size=batch_size,
@@ -151,8 +158,13 @@ history_pretrained = inception_transfer_model.fit_generator(
     callbacks=[missinglink_callback])
 
 # evaluate the model
-#scores = inception_transfer_model.evaluate(X, Y)
+#scores = inception_transfer_model.evaluate_generator(test_generator)
 #print("\n%s: %.2f%%" % (inception_transfer_model.metrics_names[1], scores[1]*100))
+with missinglink_callback.test(inception_transfer_model):
+    score = model.evaluate_generator(test_generator)
+    print('Test score:', score[0])
+    print('Test accuracy:', score[1])
+
 
 # # summarize history for accuracy
 # plt.plot(history_pretrained.history['val_acc'])
