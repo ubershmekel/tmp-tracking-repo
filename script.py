@@ -72,7 +72,9 @@ test_class_names_list = list(test_generator.class_indices.keys())
 validation_class_names_list = list(validation_generator.class_indices.keys())
 
 # import inception with pre-trained weights. do not include fully #connected layers
-inception_base = applications.ResNet50(weights='imagenet', include_top=False)
+#inception_base = applications.ResNet50(weights='imagenet', include_top=False)
+inception_base = applications.MobileNet(weights='imagenet', include_top=False)
+
 
 # add a global spatial average pooling layer
 x = inception_base.output
