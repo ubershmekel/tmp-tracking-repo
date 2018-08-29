@@ -16,8 +16,8 @@ from keras import backend
 # MissingLink snippet
 import missinglink
 
-EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "Code Sample")
-EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
+EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "Sample")
+EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "Mobilenet1")
 DATA_ROOT = os.environ.get('DATA_ROOT', os.path.expanduser('~/sra/data/mldx9'))
 EPOCHS = int(os.environ.get("EPOCHS", "5"))
 
@@ -40,10 +40,10 @@ img_width, img_height = 224, 224
 batch_size = 16
 
 train_datagen = ImageDataGenerator()
-#    rescale=1. / 255,
-#    shear_range=0.2,
-#    zoom_range=0.2,
-#    horizontal_flip=True)
+    rescale=1. / 255,
+    shear_range=0.2,
+    zoom_range=0.2,
+    horizontal_flip=True)
 
 # Convert RGB [0, 255] to [0, 1.0]
 test_validate_datagen = ImageDataGenerator(rescale=1. / 255)
@@ -73,7 +73,7 @@ validation_class_names_list = list(validation_generator.class_indices.keys())
 
 # import inception with pre-trained weights. do not include fully #connected layers
 #inception_base = applications.ResNet50(weights='imagenet', include_top=False)
-inception_base = applications.MobileNet(weights='imagenet', include_top=False)
+inception_base = applications.MobileNet(weights='imagenet', include_top=False, input_shape=(3, 224, 224))
 
 
 # add a global spatial average pooling layer
