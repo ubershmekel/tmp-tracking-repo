@@ -17,7 +17,7 @@ from keras import backend
 import missinglink
 
 EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "Sample")
-EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "Mobilenet1")
+EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
 DATA_ROOT = os.environ.get('DATA_ROOT', os.path.expanduser('~/sra/data/mldx9'))
 EPOCHS = int(os.environ.get("EPOCHS", "5"))
 
@@ -37,9 +37,10 @@ test_data_dir = DATA_ROOT + '/test'
 # The input shape for ResNet-50 is 224 by 224 by 3 with values from 0 to 1.0
 img_width, img_height = 224, 224
 
-batch_size = 16
+#batch_size = 16
+batch_size = 32
 
-train_datagen = ImageDataGenerator()
+train_datagen = ImageDataGenerator(
     rescale=1. / 255,
     shear_range=0.2,
     zoom_range=0.2,
@@ -71,30 +72,42 @@ class_names_list = list(train_generator.class_indices.keys())
 test_class_names_list = list(test_generator.class_indices.keys())
 validation_class_names_list = list(validation_generator.class_indices.keys())
 
-# import inception with pre-trained weights. do not include fully #connected layers
-#inception_base = applications.ResNet50(weights='imagenet', include_top=False)
-inception_base = applications.MobileNet(weights='imagenet', include_top=False, input_shape=(3, 224, 224))
+# Make sure class names are the same accross datasets.
+assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
+print(validation_generator.class_indices)
+
+# invert key-value to value-key for MissingLink class name reporting.
+index_to_name = {v: k for k, v in train_generator.class_indices.items()}
+missinglink_callback.set_properties(class_mapping=index_to_name)
+
+def get_model():
+    # import inception with pre-trained weights. do not include fully #connected layers
+    #base_model = applications.ResNet50(weights='imagenet', include_top=False)
+    base_model = applications.MobileNet(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 
-# add a global spatial average pooling layer
-x = inception_base.output
-x = GlobalAveragePooling2D()(x)
+    # add a global spatial average pooling layer
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
 
-# add a fully-connected layer
-x = Dense(512, activation='relu')(x)
+    # add a fully-connected layer
+    x = Dense(512, activation='relu')(x)
 
-# and a fully connected output/classification layer
-predictions = Dense(len(class_names_list), activation='softmax')(x)
+    # and a fully connected output/classification layer
+    predictions = Dense(len(class_names_list), activation='softmax')(x)
 
-# create the full network so we can train on it
-inception_transfer_model = Model(inputs=inception_base.input, outputs=predictions)
+    # create the full network so we can train on it
+    inception_transfer_model = Model(inputs=base_model.input, outputs=predictions)
 
-# create the full network so we can train on it
-inception_transfer_model.compile(loss='categorical_crossentropy',
-              optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
-              metrics=['accuracy'])
+    # create the full network so we can train on it
+    inception_transfer_model.compile(loss='categorical_crossentropy',
+                optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+                metrics=['accuracy'])
+    return inception_transfer_model
 
-history_pretrained = inception_transfer_model.fit_generator(
+model = get_model()
+
+history_pretrained = model.fit_generator(
     train_generator,
     epochs=EPOCHS,
     shuffle=True,
@@ -103,9 +116,8 @@ history_pretrained = inception_transfer_model.fit_generator(
     callbacks=[missinglink_callback])
 
 print("Beginnging Model Evaluation")
-with missinglink_callback.test(inception_transfer_model):
-    score = inception_transfer_model.evaluate_generator(test_generator, steps=len(test_generator))
-    print('Test score:', score[0])
-    print('Test accuracy:', score[1])
-    print("Metrics: {}".format(inception_transfer_model.metrics_names))
+with missinglink_callback.test(model):
+    score = model.evaluate_generator(test_generator, steps=len(test_generator))
+    for name, score in zip(model.metrics_names, score):
+        print("Metric '{}': {}".format(name, score))
 
