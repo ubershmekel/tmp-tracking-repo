@@ -17,7 +17,7 @@ from keras import applications
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
 from keras.models import Sequential, Model
-from keras.layers import Dense, GlobalAveragePooling2D, Conv2D
+from keras.layers import Dense, GlobalAveragePooling2D, Conv2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend
 import numpy as np
@@ -50,7 +50,7 @@ INPUT_CHANNELS = 3
 INPUT_SHAPE = (224, 224, INPUT_CHANNELS)
 
 #batch_size = 16
-batch_size = 16
+batch_size = 10
 
 # Convert RGB [0, 255] to [0, 1.0]
 train_datagen = ImageDataGenerator(
@@ -76,7 +76,7 @@ test_generator = ImageDataGenerator(rescale=1. / 255).flow_from_directory(
     class_mode='categorical')
 
 print("Validation:")
-validation_generator = ImageDataGenerator(rescale=1. / 255).flow_from_directory(
+validation_generator = ImageDataGenerator(rescale=1. / 255, zoom_range=0.1, shear_range=0.1).flow_from_directory(
     validation_data_dir,
     target_size=(img_height, img_width),
     batch_size=batch_size,
@@ -121,12 +121,24 @@ def get_model():
 def get_simple_model():
     model = Sequential()
     model.add(Dense(INPUT_CHANNELS, input_shape=INPUT_SHAPE, activation='relu'))
-    #model.add(Conv2D(32, (3, 3), input_shape=INPUT_SHAPE, activation = 'relu'))
-    model.add(Dense(5, activation='relu'))
-    model.add(GlobalAveragePooling2D())
-    #model.add(Flatten())
-    #model.add(Dense(128))
-    model.add(Dense(5, activation='relu'))
+    model.add(Conv2D(filters=4, kernel_size=(4, 4), strides=8, input_shape=INPUT_SHAPE, activation = 'relu'))
+    # model.add(MaxPooling2D(pool_size=(3, 3)))
+    # model.add(Conv2D(16, (3, 3), input_shape=INPUT_SHAPE, activation = 'relu'))
+    # model.add(MaxPooling2D())
+    #model.add(Dense(2, activation='relu'))
+    # model.add(GlobalAveragePooling2D())
+    model.add(Flatten())
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128, activation='relu'))
+    # model.add(Dense(128))
+    # model.add(Dense(128))
+    # model.add(Dense(128))
+    # model.add(Dense(128))
+    # model.add(Dense(128))
+    #model.add(Dense(5, activation='relu'))
     model.add(Dense(class_count, activation='softmax'))
     #model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])    
     model.compile(loss='categorical_crossentropy',
