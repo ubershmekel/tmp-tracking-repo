@@ -5,6 +5,14 @@ Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/mast
 from sys import platform
 import os
 
+# Make keras initialization deterministic
+import random
+random.seed(42)
+import numpy.random
+numpy.random.seed(1983)
+from tensorflow import set_random_seed
+set_random_seed(1997)
+
 from keras import applications
 from keras.preprocessing.image import ImageDataGenerator
 from keras import optimizers
@@ -16,6 +24,7 @@ import numpy as np
 
 # MissingLink snippet
 import missinglink
+
 
 EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "Sample")
 EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
@@ -48,7 +57,8 @@ train_datagen = ImageDataGenerator(
     rescale=1. / 255,
 #    shear_range=0.2,
 #    zoom_range=0.2,
-    horizontal_flip=True)
+#    horizontal_flip=True
+)
 
 
 print("Train:")
@@ -73,8 +83,6 @@ validation_generator = ImageDataGenerator(rescale=1. / 255).flow_from_directory(
     class_mode='categorical')
 
 class_names_list = list(train_generator.class_indices.keys())
-test_class_names_list = list(test_generator.class_indices.keys())
-validation_class_names_list = list(validation_generator.class_indices.keys())
 class_count = len(class_names_list)
 
 # Make sure class names are the same accross datasets.
@@ -114,13 +122,17 @@ def get_simple_model():
     model = Sequential()
     model.add(Dense(INPUT_CHANNELS, input_shape=INPUT_SHAPE, activation='relu'))
     #model.add(Conv2D(32, (3, 3), input_shape=INPUT_SHAPE, activation = 'relu'))
-    model.add(Dense(2, activation='relu'))
-    #model.add(GlobalAveragePooling2D())
-    model.add(Flatten())
+    model.add(Dense(5, activation='relu'))
+    model.add(GlobalAveragePooling2D())
+    #model.add(Flatten())
     #model.add(Dense(128))
+    model.add(Dense(5, activation='relu'))
     model.add(Dense(class_count, activation='softmax'))
     #model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])    
-    model.compile(loss='categorical_crossentropy', optimizer=optimizers.Adam(), metrics=['accuracy'])    
+    model.compile(loss='categorical_crossentropy',
+        #optimizer=optimizers.Adam(),
+        optimizer=optimizers.SGD(lr=1e-4, momentum=0.9),
+        metrics=['accuracy'])    
     return model
 
 def evaluate(model):
