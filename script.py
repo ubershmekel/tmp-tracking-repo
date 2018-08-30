@@ -114,7 +114,7 @@ def get_simple_model():
     model = Sequential()
     model.add(Dense(INPUT_CHANNELS, input_shape=INPUT_SHAPE, activation='relu'))
     #model.add(Conv2D(32, (3, 3), input_shape=INPUT_SHAPE, activation = 'relu'))
-    #model.add(Dense(7, activation='relu'))
+    model.add(Dense(2, activation='relu'))
     #model.add(GlobalAveragePooling2D())
     model.add(Flatten())
     #model.add(Dense(128))
@@ -129,6 +129,15 @@ def evaluate(model):
         score = model.evaluate_generator(test_generator, steps=len(test_generator))
         for name, score in zip(model.metrics_names, score):
             print("Metric '{}': {}".format(name, score))
+
+
+    input_instances, labels = next(test_generator)
+    preds = model.predict(input_instances)
+    def max_indices(predictions_seq):
+        return (np.argmax(probs) for probs in predictions_seq)
+    print("Example predictions, vs labels:")
+    import pprint
+    pprint.pprint(list(zip(max_indices(preds), max_indices(labels))))
 
 #model = get_model()
 model = get_simple_model()
