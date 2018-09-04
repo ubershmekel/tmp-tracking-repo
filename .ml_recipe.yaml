@@ -4,9 +4,9 @@ org: yuval
 project: 5686084218388480
 data_volume: 5685154290860032
 #data_query: '@version:87e1e5f2ab8facd5f1235a5d147cd6a302c73f29 @seed:1337 @sample:0.3 @split:0.2:0.2:0.6 multi:False AND gtdee:False'
-data_query: '@version:87e1e5f2ab8facd5f1235a5d147cd6a302c73f29 @seed:1337 @sample:0.15 @split:0.1:0.2:0.7 multi:False AND gtdee:False'
+data_query: '@seed:1337 @split:0.2:0.2:0.6 class:"Apple Red 1" OR class:Avocado OR class:Banana OR class:Kiwi OR class:Mango OR class:Pear OR class:Walnut'
 data_dest: '/data/$phase/$class'
 env:
-  EPOCHS: 250
+  EPOCHS: 20
   DATA_ROOT: /data
   EXPERIMENT_NAME: simple-conv-shear-zoom
