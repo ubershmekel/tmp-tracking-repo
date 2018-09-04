@@ -7,6 +7,12 @@ data_volume: 5685154290860032
 data_query: '@seed:1337 @split:0.2:0.2:0.6 class:"Apple Red 1" OR class:Avocado OR class:Banana OR class:"Cherry 2" OR class:Kiwi OR class:Mango OR class:Nectarine OR class:Pear OR class:Strawberry OR class:Walnut'
 data_dest: '/data/$phase/$class'
 env:
-  EPOCHS: 20
   DATA_ROOT: /data
-  EXPERIMENT_NAME: simple-conv-shear-zoom
+  EXPERIMENT_NAME: simple-20e-sgd-5-50-b100
+  EPOCHS: 20
+  BATCH_SIZE: 100
+  OPTIMIZER: sgd
+  LEARNING_RATE: 0.01
+  MODEL: simple
+  SIMPLE_LAYER_DIMENSIONALITY: 50
+  SIMPLE_LAYER_COUNT: 5

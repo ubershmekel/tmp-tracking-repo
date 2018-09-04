@@ -34,12 +34,12 @@ PROJECT_TOKEN ='ejHztrwUToiIucAA'
 
 # Hyper paramaters
 EPOCHS = int(os.environ.get("EPOCHS", "4"))
+MODEL = os.environ.get("MODEL", "simple")
 SIMPLE_LAYER_DIMENSIONALITY = int(os.environ.get("SIMPLE_LAYER_DIMENSIONALITY", "64"))
 SIMPLE_LAYER_COUNT = int(os.environ.get("SIMPLE_LAYER_COUNT", "0"))
 BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "10"))
 OPTIMIZER = os.environ.get("OPTIMIZER", "sgd")
 LEARNING_RATE = float(os.environ.get("LEARNING_RATE", "0.01"))
-MODEL = os.environ.get("MODEL", "simple")
 
 missinglink_callback = missinglink.KerasCallback(
     owner_id=OWNER_ID,
@@ -49,12 +49,12 @@ missinglink_callback.set_properties(
     description=EXPERIMENT_NOTE)
 
 missinglink_callback.set_hyperparams(
+    MODEL=MODEL,
     SIMPLE_LAYER_DIMENSIONALITY=SIMPLE_LAYER_DIMENSIONALITY,
     SIMPLE_LAYER_COUNT=SIMPLE_LAYER_COUNT,
     BATCH_SIZE=BATCH_SIZE,
     OPTIMIZER=OPTIMIZER,
     LEARNING_RATE=LEARNING_RATE,
-    MODEL=MODEL,
 )
 
 # Note Adam defaults lr to 0.001
