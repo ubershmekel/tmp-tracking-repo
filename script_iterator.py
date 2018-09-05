@@ -14,12 +14,13 @@ numpy.random.seed(1997)
 set_random_seed(42)
 
 from keras import applications
-from keras.preprocessing.image import ImageDataGenerator
+from keras.preprocessing.image import ImageDataGenerator, load_img, img_to_array
 from keras import optimizers
 from keras.models import Sequential, Model
 from keras.layers import Dense, GlobalAveragePooling2D, Conv2D, MaxPooling2D
 from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend
+import matplotlib.image as mpimg
 import numpy as np
 
 # MissingLink snippet
@@ -79,57 +80,99 @@ input_shape = (img_height, img_width, input_channels)
 
 
 # Convert RGB [0, 255] to [0, 1.0]
-train_datagen = ImageDataGenerator(
+datagen = ImageDataGenerator(
     rescale=1. / 255,
 #    shear_range=0.2,
 #    zoom_range=0.2,
 #    horizontal_flip=True
 )
 
-test_datagen = ImageDataGenerator(
-    rescale=1. / 255,
-#    shear_range=0.2,
-#    zoom_range=0.2,
-#    horizontal_flip=True
+def read_image(filename):
+    img = mpimg.imread(filename)
+    # reshape it from (32,32,3) to a vector of 3072 numbers
+    new_img = img  # .reshape((-1), order='F')
+    return new_img
+
+
+def one_hot(i):
+    a = np.zeros(len(class_mapping), 'uint8')
+    a[i] = 1
+    return a
+
+def deserialization_callback(file_names, metadatas):
+    # if random.randint(0, 100) % 10:
+    #     print('filesnames %s' % filename)
+    #     print('metadata %s' % metadata)
+
+    # we load the image and reshape it to a vector
+    #print("file_names: {}".format(file_names))
+    #print("metadatas: {}".format(metadatas))
+    filename, = file_names
+    metadata, = metadatas
+    #x = read_image(filename)
+    x = load_img(path=filename, target_size=image_shape)
+    x = img_to_array(x)
+    #print("shape: {}".format(x.shape))
+    #x = datagen.random_transform(x)
+    x = datagen.standardize(x)
+    #print(x)
+    # convert the class number to one hot
+    class_name = metadata['class']
+    class_index = name_to_index[class_name]
+    y = one_hot(class_index)
+    return x, y
+
+
+volume_id = 5685154290860032
+query = '@seed:1337 @split:0.2:0.2:0.6 class:"Apple Red 1" OR class:Avocado OR class:Banana OR class:"Cherry 2" OR class:Kiwi OR class:Mango OR class:Nectarine OR class:Pear OR class:Strawberry OR class:Walnut'
+class_mapping = {
+    0: 'Apple Red 1',
+    1: 'Avocado',
+    2: 'Banana',
+    3: 'Cherry 2',
+    4: 'Kiwi',
+    5: 'Mango',
+    6: 'Nectarine',
+    7: 'Pear',
+    8: 'Strawberry',
+    9: 'Walnut',
+}
+name_to_index = {v: k for k, v in class_mapping.items()}
+class_count = len(class_mapping)
+
+data_generator = missinglink_callback.bind_data_generator(
+    volume_id, query, deserialization_callback, batch_size=BATCH_SIZE
 )
+train_generator, validation_generator, test_generator = data_generator.flow()
 
-validation_datagen = ImageDataGenerator(
-    rescale=1. / 255,
-#    shear_range=0.2,
-#    zoom_range=0.2,
-#    horizontal_flip=True
-)
 
-print("Train:")
-train_generator = train_datagen.flow_from_directory(
-    train_data_dir,
-    target_size=image_shape,
-    batch_size=BATCH_SIZE,
-    class_mode='categorical')
+# print("Train:")
+# train_generator = train_datagen.flow_from_directory(
+#     train_data_dir,
+#     target_size=image_shape,
+#     batch_size=BATCH_SIZE,
+#     class_mode='categorical')
 
-print("Test:")
-test_generator = test_datagen.flow_from_directory(
-    test_data_dir,
-    target_size=image_shape,
-    batch_size=BATCH_SIZE,
-    class_mode='categorical')
+# print("Test:")
+# test_generator = test_datagen.flow_from_directory(
+#     test_data_dir,
+#     target_size=image_shape,
+#     batch_size=BATCH_SIZE,
+#     class_mode='categorical')
 
-print("Validation:")
-validation_generator = validation_datagen.flow_from_directory(
-    validation_data_dir,
-    target_size=image_shape,
-    batch_size=BATCH_SIZE,
-    class_mode='categorical')
+# print("Validation:")
+# validation_generator = validation_datagen.flow_from_directory(
+#     validation_data_dir,
+#     target_size=image_shape,
+#     batch_size=BATCH_SIZE,
+#     class_mode='categorical')
 
-class_names_list = list(train_generator.class_indices.keys())
-class_count = len(class_names_list)
 
 # Make sure class names are the same accross datasets.
-assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
-
+#assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
+# TODO: Make the class mapping cardinality assert after processing
 # invert key-value to value-key for MissingLink class name reporting.
-index_to_name = {v: k for k, v in train_generator.class_indices.items()}
-missinglink_callback.set_properties(class_mapping=index_to_name)
+missinglink_callback.set_properties(class_mapping=class_mapping)
 
 def get_transfer_model():
     # import inception with pre-trained weights. do not include fully #connected layers
@@ -208,9 +251,11 @@ model.summary()
 history_pretrained = model.fit_generator(
     train_generator,
     epochs=EPOCHS,
+    steps_per_epoch=len(train_generator),
     shuffle=True,
     verbose=1,
     validation_data=validation_generator,
+    validation_steps=len(validation_generator),
     callbacks=[missinglink_callback])
 
 evaluate(model)
