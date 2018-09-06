@@ -1,13 +1,13 @@
 command:
 - 'python /code/script_iterator.py'
 org: yuval
-project: 5686084218388480
+project: 5702926261551104
 env:
-  EXPERIMENT_NAME: simple-20e-sgd-5-50-lr-0.1
+  EXPERIMENT_NAME: resnet50-20e-sgd
   EPOCHS: 20
   BATCH_SIZE: 10
-  MODEL: simple
+  MODEL: resnet50
   SIMPLE_LAYER_DIMENSIONALITY: 50
   SIMPLE_LAYER_COUNT: 5
   OPTIMIZER: sgd
-  LEARNING_RATE: 0.1
+  LEARNING_RATE: 0.01

@@ -32,7 +32,7 @@ EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "")
 EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
 DATA_ROOT = os.environ.get('DATA_ROOT', os.path.expanduser('~/sra/data/mldx-small'))
 OWNER_ID ='5cbb4c75-b52a-4386-af35-ce9ba735a4bb'
-PROJECT_TOKEN ='ejHztrwUToiIucAA'
+PROJECT_TOKEN ='pxvamklbryBnaZUD'
 
 # Hyper paramaters
 EPOCHS = int(os.environ.get("EPOCHS", "4"))
@@ -110,7 +110,7 @@ def deserialization_callback(file_names, metadatas):
 
 
 volume_id = 5685154290860032
-query = '@seed:1337 @split:0.2:0.2:0.6 yummy:True'
+query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.2:0.2:0.6 yummy:True'
 class_names = [
     'Apple Red 1',
     'Avocado',
