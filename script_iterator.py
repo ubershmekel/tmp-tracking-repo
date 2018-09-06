@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/master.zip
 """
@@ -54,8 +55,8 @@ missinglink_callback.set_hyperparams(
     SIMPLE_LAYER_DIMENSIONALITY=SIMPLE_LAYER_DIMENSIONALITY,
     SIMPLE_LAYER_COUNT=SIMPLE_LAYER_COUNT,
     BATCH_SIZE=BATCH_SIZE,
-    OPTIMIZER=OPTIMIZER,
-    LEARNING_RATE=LEARNING_RATE,
+#    OPTIMIZER=OPTIMIZER,
+#    LEARNING_RATE=LEARNING_RATE,
 )
 
 # Note Adam defaults lr to 0.001
