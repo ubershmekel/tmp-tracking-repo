@@ -1,5 +1,5 @@
 command:
-- '/code/script_iterator.py'
+- 'python /code/script_iterator.py'
 org: yuval
 project: 5686084218388480
 env:
