@@ -13,11 +13,13 @@ parser = argparse.ArgumentParser(description='Create metadata.json files.')
 parser.add_argument(
     '--root',
     type=str,
-    required=True,
+    default='/Users/yuval.g/sra/data/fruits-360',
     help='folder to add metadat files to')
 
 args = parser.parse_args()
 print("Adding metadata to: '{}".format(args.root))
+
+yummy = "Apple Red 1", "Avocado", "Banana", "Cherry 2", "Kiwi", "Lemon", "Mango", "Nectarine", "Pear", "Strawberry", "Walnut"
 
 for dirpath, dirnames, filenames in os.walk(args.root):
     for fname in filenames:
@@ -30,7 +32,7 @@ for dirpath, dirnames, filenames in os.walk(args.root):
                 "class": cls,
                 "name": parts[-1],
                 "multi": "multiple" in cls,
-                "gtdee": False if cls.lower() < "d" else True,
+                "yummy": cls in yummy,
             }
             metadata_fname = fpath + ".metadata.json"
             with open(metadata_fname, 'w') as metadata_fhand:
