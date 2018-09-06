@@ -88,34 +88,19 @@ datagen = ImageDataGenerator(
 #    horizontal_flip=True
 )
 
-def read_image(filename):
-    img = mpimg.imread(filename)
-    # reshape it from (32,32,3) to a vector of 3072 numbers
-    new_img = img  # .reshape((-1), order='F')
-    return new_img
-
-
 def one_hot(i):
     a = np.zeros(len(class_mapping), 'uint8')
     a[i] = 1
     return a
 
 def deserialization_callback(file_names, metadatas):
-    # if random.randint(0, 100) % 10:
-    #     print('filesnames %s' % filename)
-    #     print('metadata %s' % metadata)
-
-    # we load the image and reshape it to a vector
-    #print("file_names: {}".format(file_names))
-    #print("metadatas: {}".format(metadatas))
     filename, = file_names
     metadata, = metadatas
-    #x = read_image(filename)
-    x = load_img(path=filename, target_size=image_shape)
-    x = img_to_array(x)
+    img = load_img(path=filename, target_size=image_shape)
+    array = img_to_array(img)
     #print("shape: {}".format(x.shape))
     #x = datagen.random_transform(x)
-    x = datagen.standardize(x)
+    x = datagen.standardize(array)
     #print(x)
     # convert the class number to one hot
     class_name = metadata['class']
@@ -125,19 +110,21 @@ def deserialization_callback(file_names, metadatas):
 
 
 volume_id = 5685154290860032
-query = '@seed:1337 @split:0.2:0.2:0.6 class:"Apple Red 1" OR class:Avocado OR class:Banana OR class:"Cherry 2" OR class:Kiwi OR class:Mango OR class:Nectarine OR class:Pear OR class:Strawberry OR class:Walnut'
-class_mapping = {
-    0: 'Apple Red 1',
-    1: 'Avocado',
-    2: 'Banana',
-    3: 'Cherry 2',
-    4: 'Kiwi',
-    5: 'Mango',
-    6: 'Nectarine',
-    7: 'Pear',
-    8: 'Strawberry',
-    9: 'Walnut',
-}
+query = '@seed:1337 @split:0.2:0.2:0.6 yummy:True'
+class_names = [
+    'Apple Red 1',
+    'Avocado',
+    'Banana',
+    'Cherry 2',
+    'Kiwi',
+    'Lemon',
+    'Mango',
+    'Nectarine',
+    'Pear',
+    'Strawberry',
+    'Walnut',
+]
+class_mapping = dict(enumerate(class_names))
 name_to_index = {v: k for k, v in class_mapping.items()}
 class_count = len(class_mapping)
 
@@ -145,29 +132,6 @@ data_generator = missinglink_callback.bind_data_generator(
     volume_id, query, deserialization_callback, batch_size=BATCH_SIZE
 )
 train_generator, validation_generator, test_generator = data_generator.flow()
-
-
-# print("Train:")
-# train_generator = train_datagen.flow_from_directory(
-#     train_data_dir,
-#     target_size=image_shape,
-#     batch_size=BATCH_SIZE,
-#     class_mode='categorical')
-
-# print("Test:")
-# test_generator = test_datagen.flow_from_directory(
-#     test_data_dir,
-#     target_size=image_shape,
-#     batch_size=BATCH_SIZE,
-#     class_mode='categorical')
-
-# print("Validation:")
-# validation_generator = validation_datagen.flow_from_directory(
-#     validation_data_dir,
-#     target_size=image_shape,
-#     batch_size=BATCH_SIZE,
-#     class_mode='categorical')
-
 
 # Make sure class names are the same accross datasets.
 #assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
@@ -209,18 +173,12 @@ def get_simple_model():
     model = Sequential()
     model.add(Dense(input_channels, input_shape=input_shape, activation='relu'))
     model.add(Conv2D(filters=4, kernel_size=(4, 4), strides=8, input_shape=input_shape, activation = 'relu'))
-    # model.add(MaxPooling2D(pool_size=(3, 3)))
-    # model.add(Conv2D(16, (3, 3), input_shape=input_shape, activation = 'relu'))
-    # model.add(MaxPooling2D())
-    #model.add(Dense(2, activation='relu'))
-    # model.add(GlobalAveragePooling2D())
     model.add(Flatten())
 
     for _ in range(SIMPLE_LAYER_COUNT):
         model.add(Dense(SIMPLE_LAYER_DIMENSIONALITY, activation='relu'))
 
     model.add(Dense(class_count, activation='softmax'))
-    #model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])    
     model.compile(loss='categorical_crossentropy',
         optimizer=optimizer,
         metrics=['accuracy'])    
@@ -248,7 +206,6 @@ else:
     model = get_transfer_model()
 model.summary()
 
-#evaluate(model)
 history_pretrained = model.fit_generator(
     train_generator,
     epochs=EPOCHS,
