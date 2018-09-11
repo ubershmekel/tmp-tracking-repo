@@ -117,21 +117,21 @@ def deserialization_callback(file_names, metadatas):
 volume_id = 5685154290860032
 
 query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.2:0.2:0.6 NOT class:"test-multiple_fruits"'
-class_names = [
-    'Apple Red 1',
-    'Avocado',
-    'Banana',
-    'Cherry 2',
-    'Kiwi',
-    'Lemon',
-    'Mango',
-    'Nectarine',
-    'Pear',
-    'Strawberry',
-    'Walnut',
-]
-class_mapping = dict(enumerate(class_names))
-name_to_index = {v: k for k, v in class_mapping.items()}
+# class_names = [
+#     'Apple Red 1',
+#     'Avocado',
+#     'Banana',
+#     'Cherry 2',
+#     'Kiwi',
+#     'Lemon',
+#     'Mango',
+#     'Nectarine',
+#     'Pear',
+#     'Strawberry',
+#     'Walnut',
+# ]
+#class_mapping = dict(enumerate(class_names))
+#name_to_index = {v: k for k, v in class_mapping.items()}
 #class_count = len(class_mapping)
 class_count = 75
 

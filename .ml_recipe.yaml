@@ -3,8 +3,8 @@ command:
 org: yuval
 project: 5702926261551104
 env:
-  EXPERIMENT_NAME: simple-20e-sgd-0-50-lr-0.01
-  EPOCHS: 20
+  EXPERIMENT_NAME: simple-20e-sgd-0-lr-0.01
+  EPOCHS: 60
   BATCH_SIZE: 10
   MODEL: simple
   SIMPLE_LAYER_DIMENSIONALITY: 50
