@@ -19,7 +19,7 @@ parser.add_argument(
 args = parser.parse_args()
 print("Adding metadata to: '{}".format(args.root))
 
-yummy = "Apple Red 1", "Avocado", "Banana", "Cherry 2", "Kiwi", "Lemon", "Mango", "Nectarine", "Pear", "Strawberry", "Walnut"
+yummy = "Apple Red 1", "Avocado", "Banana", "Cherry 2", "Kiwi", "Lemon", "Mango", "Nectarine", "Orange", "Pear", "Strawberry", "Walnut"
 
 for dirpath, dirnames, filenames in os.walk(args.root):
     for fname in filenames:

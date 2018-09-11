@@ -116,7 +116,9 @@ def deserialization_callback(file_names, metadatas):
 
 volume_id = 5685154290860032
 
-query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.2:0.2:0.6 NOT class:"test-multiple_fruits"'
+class_count = 75
+#class_count = 11
+query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.1:0.2:0.7 @sample:0.2 NOT class:test-multiple_fruits' #yummy:True
 # class_names = [
 #     'Apple Red 1',
 #     'Avocado',
@@ -133,12 +135,18 @@ query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.2
 #class_mapping = dict(enumerate(class_names))
 #name_to_index = {v: k for k, v in class_mapping.items()}
 #class_count = len(class_mapping)
-class_count = 75
 
 data_generator = missinglink_callback.bind_data_generator(
     volume_id, query, deserialization_callback, batch_size=BATCH_SIZE
 )
-train_generator, validation_generator, test_generator = data_generator.flow()
+train_generator, test_generator, validation_generator = data_generator.flow()
+
+
+print("Len train: {}".format(len(train_generator)))
+print("Len validation: {}".format(len(validation_generator)))
+print("Len test: {}".format(len(test_generator)))
+
+assert len(train_generator) > 0
 
 # Make sure class names are the same accross datasets.
 #assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
@@ -225,6 +233,12 @@ history_pretrained = model.fit_generator(
 
 classes_in_training = len(seen_classes)
 
+class_mapping = {index: name for name, index in seen_classes.items()}
+missinglink_callback.set_properties(class_mapping=class_mapping)
+
 evaluate(model)
+
+# Sadly class mapping does not work when it's at the end
+print("Seen {} classes".format(len(seen_classes)))
 
 assert len(seen_classes) == classes_in_training == class_count
