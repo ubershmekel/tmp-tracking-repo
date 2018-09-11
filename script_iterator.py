@@ -31,6 +31,7 @@ import missinglink
 EXPERIMENT_NAME = os.environ.get("EXPERIMENT_NAME", "")
 EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
 DATA_ROOT = os.environ.get('DATA_ROOT', os.path.expanduser('~/sra/data/mldx-small'))
+
 OWNER_ID ='5cbb4c75-b52a-4386-af35-ce9ba735a4bb'
 PROJECT_TOKEN ='pxvamklbryBnaZUD'
 
@@ -78,7 +79,7 @@ img_width, img_height = 224, 224
 input_channels = 3
 image_shape = (img_height, img_width)
 input_shape = (img_height, img_width, input_channels)
-
+seen_classes = {}
 
 # Convert RGB [0, 255] to [0, 1.0]
 datagen = ImageDataGenerator(
@@ -89,7 +90,7 @@ datagen = ImageDataGenerator(
 )
 
 def one_hot(i):
-    a = np.zeros(len(class_mapping), 'uint8')
+    a = np.zeros(class_count, 'uint8')
     a[i] = 1
     return a
 
@@ -104,13 +105,18 @@ def deserialization_callback(file_names, metadatas):
     #print(x)
     # convert the class number to one hot
     class_name = metadata['class']
-    class_index = name_to_index[class_name]
+    if class_name not in seen_classes:
+        seen_classes[class_name] = len(seen_classes)
+        print("New class: {}".format(class_name))
+    class_index = seen_classes[class_name]
+    #class_index = name_to_index[class_name]
     y = one_hot(class_index)
     return x, y
 
 
 volume_id = 5685154290860032
-query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.2:0.2:0.6 yummy:True'
+
+query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.2:0.2:0.6 NOT class:"test-multiple_fruits"'
 class_names = [
     'Apple Red 1',
     'Avocado',
@@ -126,7 +132,8 @@ class_names = [
 ]
 class_mapping = dict(enumerate(class_names))
 name_to_index = {v: k for k, v in class_mapping.items()}
-class_count = len(class_mapping)
+#class_count = len(class_mapping)
+class_count = 75
 
 data_generator = missinglink_callback.bind_data_generator(
     volume_id, query, deserialization_callback, batch_size=BATCH_SIZE
@@ -137,7 +144,7 @@ train_generator, validation_generator, test_generator = data_generator.flow()
 #assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
 # TODO: Make the class mapping cardinality assert after processing
 # invert key-value to value-key for MissingLink class name reporting.
-missinglink_callback.set_properties(class_mapping=class_mapping)
+#missinglink_callback.set_properties(class_mapping=class_mapping)
 
 def get_transfer_model():
     # import inception with pre-trained weights. do not include fully #connected layers
@@ -185,7 +192,7 @@ def get_simple_model():
     return model
 
 def evaluate(model):
-    print("Beginnging model evaluation of {} batches".format(len(test_generator)))
+    print("Starting model evaluation of {} batches".format(len(test_generator)))
     with missinglink_callback.test(model):
         score = model.evaluate_generator(test_generator, steps=len(test_generator))
         for name, score in zip(model.metrics_names, score):
@@ -216,5 +223,8 @@ history_pretrained = model.fit_generator(
     validation_steps=len(validation_generator),
     callbacks=[missinglink_callback])
 
+classes_in_training = len(seen_classes)
+
 evaluate(model)
 
+assert len(seen_classes) == classes_in_training == class_count
