@@ -4,6 +4,8 @@ org: yuval
 project: 5702926261551104
 env:
   EXPERIMENT_NAME: simple-100e-sgd-10-50-lr-0.01
+  QUERY: '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.1:0.2:0.7 @sample:0.2 NOT class:test-multiple_fruits'
+  CLASS_COUNT: 75
   EPOCHS: 100
   BATCH_SIZE: 10
   MODEL: simple

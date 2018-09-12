@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Get data from https://github.com/missinglinkai/Fruit-Images-Dataset/archive/master.zip
+Classify fruits
 """
 
 from sys import platform
@@ -43,6 +44,8 @@ SIMPLE_LAYER_COUNT = int(os.environ.get("SIMPLE_LAYER_COUNT", "0"))
 BATCH_SIZE = int(os.environ.get("BATCH_SIZE", "10"))
 OPTIMIZER = os.environ.get("OPTIMIZER", "sgd")
 LEARNING_RATE = float(os.environ.get("LEARNING_RATE", "0.01"))
+CLASS_COUNT = int(os.environ.get("CLASS_COUNT", "11"))
+QUERY = os.environ.get("QUERY", '@seed:1337 @split:0.1:0.2:0.7 @sample:0.2 yummy:True')
 
 missinglink_callback = missinglink.KerasCallback(
     owner_id=OWNER_ID,
@@ -56,8 +59,7 @@ missinglink_callback.set_hyperparams(
     SIMPLE_LAYER_DIMENSIONALITY=SIMPLE_LAYER_DIMENSIONALITY,
     SIMPLE_LAYER_COUNT=SIMPLE_LAYER_COUNT,
     BATCH_SIZE=BATCH_SIZE,
-#    OPTIMIZER=OPTIMIZER,
-#    LEARNING_RATE=LEARNING_RATE,
+    CLASS_COUNT=CLASS_COUNT,
 )
 
 # Note Adam defaults lr to 0.001
@@ -90,7 +92,7 @@ datagen = ImageDataGenerator(
 )
 
 def one_hot(i):
-    a = np.zeros(class_count, 'uint8')
+    a = np.zeros(CLASS_COUNT, 'uint8')
     a[i] = 1
     return a
 
@@ -116,9 +118,7 @@ def deserialization_callback(file_names, metadatas):
 
 volume_id = 5685154290860032
 
-class_count = 75
-#class_count = 11
-query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.1:0.2:0.7 @sample:0.2 NOT class:test-multiple_fruits' #yummy:True
+#CLASS_COUNT = 11
 # class_names = [
 #     'Apple Red 1',
 #     'Avocado',
@@ -134,10 +134,10 @@ query = '@version:aca1a37a00aa7cc4ac10d876f5331ea94300ed06 @seed:1337 @split:0.1
 # ]
 #class_mapping = dict(enumerate(class_names))
 #name_to_index = {v: k for k, v in class_mapping.items()}
-#class_count = len(class_mapping)
+#CLASS_COUNT = len(class_mapping)
 
 data_generator = missinglink_callback.bind_data_generator(
-    volume_id, query, deserialization_callback, batch_size=BATCH_SIZE
+    volume_id, QUERY, deserialization_callback, batch_size=BATCH_SIZE
 )
 train_generator, test_generator, validation_generator = data_generator.flow()
 
@@ -172,7 +172,7 @@ def get_transfer_model():
     x = Dense(512, activation='relu')(x)
 
     # and a fully connected output/classification layer
-    predictions = Dense(class_count, activation='softmax')(x)
+    predictions = Dense(CLASS_COUNT, activation='softmax')(x)
 
     # create the full network so we can train on it
     transfer_learning_model = Model(inputs=base_model.input, outputs=predictions)
@@ -193,7 +193,7 @@ def get_simple_model():
     for _ in range(SIMPLE_LAYER_COUNT):
         model.add(Dense(SIMPLE_LAYER_DIMENSIONALITY, activation='relu'))
 
-    model.add(Dense(class_count, activation='softmax'))
+    model.add(Dense(CLASS_COUNT, activation='softmax'))
     model.compile(loss='categorical_crossentropy',
         optimizer=optimizer,
         metrics=['accuracy'])    
@@ -245,6 +245,6 @@ missinglink_callback.set_properties(class_mapping=class_mapping)
 evaluate(model)
 
 # Sadly class mapping does not work when it's at the end
-print("Seen {} classes".format(len(seen_classes)))
+print("Expected {}, seen {} classes".format(CLASS_COUNT, len(seen_classes)))
 
-assert len(seen_classes) == classes_in_training == class_count
+assert len(seen_classes) == classes_in_training == CLASS_COUNT
