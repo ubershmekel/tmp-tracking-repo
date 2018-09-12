@@ -221,11 +221,17 @@ else:
     model = get_transfer_model()
 model.summary()
 
+
+# for layer in model.layers:
+#     weights = layer.get_weights() # list of numpy arrays
+#     print(weights)
+# exit(0)
+
 history_pretrained = model.fit_generator(
     train_generator,
     epochs=EPOCHS,
     steps_per_epoch=len(train_generator),
-    shuffle=True,
+    shuffle=False,
     verbose=1,
     validation_data=validation_generator,
     validation_steps=len(validation_generator),
