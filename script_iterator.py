@@ -24,6 +24,7 @@ from keras.layers import Activation, Dropout, Flatten, Dense
 from keras import backend
 import matplotlib.image as mpimg
 import numpy as np
+import keras.callbacks
 
 # MissingLink snippet
 import missinglink
@@ -46,6 +47,7 @@ OPTIMIZER = os.environ.get("OPTIMIZER", "sgd")
 LEARNING_RATE = float(os.environ.get("LEARNING_RATE", "0.01"))
 CLASS_COUNT = int(os.environ.get("CLASS_COUNT", "11"))
 QUERY = os.environ.get("QUERY", '@seed:1337 @split:0.1:0.2:0.7 @sample:0.2 yummy:True')
+DATA_VOLUME_ID = int(os.environ.get("DATA_VOLUME_ID", "5685154290860032"))
 
 missinglink_callback = missinglink.KerasCallback(
     owner_id=OWNER_ID,
@@ -53,7 +55,6 @@ missinglink_callback = missinglink.KerasCallback(
 missinglink_callback.set_properties(
     display_name=EXPERIMENT_NAME,
     description=EXPERIMENT_NOTE)
-
 missinglink_callback.set_hyperparams(
     MODEL=MODEL,
     SIMPLE_LAYER_DIMENSIONALITY=SIMPLE_LAYER_DIMENSIONALITY,
@@ -61,6 +62,7 @@ missinglink_callback.set_hyperparams(
     BATCH_SIZE=BATCH_SIZE,
     CLASS_COUNT=CLASS_COUNT,
 )
+callbacks = [missinglink_callback]
 
 # Note Adam defaults lr to 0.001
 #       SGD defaults lr to 0.01
@@ -84,12 +86,7 @@ input_shape = (img_height, img_width, input_channels)
 seen_classes = {}
 
 # Convert RGB [0, 255] to [0, 1.0]
-datagen = ImageDataGenerator(
-    rescale=1. / 255,
-#    shear_range=0.2,
-#    zoom_range=0.2,
-#    horizontal_flip=True
-)
+datagen = ImageDataGenerator(rescale=1. / 255)
 
 def one_hot(i):
     a = np.zeros(CLASS_COUNT, 'uint8')
@@ -99,6 +96,7 @@ def one_hot(i):
 def deserialization_callback(file_names, metadatas):
     filename, = file_names
     metadata, = metadatas
+    #print(metadata)
     img = load_img(path=filename, target_size=image_shape)
     array = img_to_array(img)
     #print("shape: {}".format(x.shape))
@@ -116,28 +114,8 @@ def deserialization_callback(file_names, metadatas):
     return x, y
 
 
-volume_id = 5685154290860032
-
-#CLASS_COUNT = 11
-# class_names = [
-#     'Apple Red 1',
-#     'Avocado',
-#     'Banana',
-#     'Cherry 2',
-#     'Kiwi',
-#     'Lemon',
-#     'Mango',
-#     'Nectarine',
-#     'Pear',
-#     'Strawberry',
-#     'Walnut',
-# ]
-#class_mapping = dict(enumerate(class_names))
-#name_to_index = {v: k for k, v in class_mapping.items()}
-#CLASS_COUNT = len(class_mapping)
-
 data_generator = missinglink_callback.bind_data_generator(
-    volume_id, QUERY, deserialization_callback, batch_size=BATCH_SIZE
+    DATA_VOLUME_ID, QUERY, deserialization_callback, batch_size=BATCH_SIZE
 )
 train_generator, test_generator, validation_generator = data_generator.flow()
 
@@ -148,11 +126,26 @@ print("Len test: {}".format(len(test_generator)))
 
 assert len(train_generator) > 0
 
-# Make sure class names are the same accross datasets.
-#assert train_generator.class_indices == test_generator.class_indices == validation_generator.class_indices
-# TODO: Make the class mapping cardinality assert after processing
-# invert key-value to value-key for MissingLink class name reporting.
-#missinglink_callback.set_properties(class_mapping=class_mapping)
+if missinglink_callback.rm_active:
+    checkpoints_directory = '/output/checkpoints'
+    if not os.path.exists(checkpoints_directory):
+        os.mkdir(checkpoints_directory)
+    checkpoint_format = checkpoints_directory + '/weights_epoch-{epoch:02d}_loss-{loss:.4f}.h5'
+    save_models_callback = keras.callbacks.ModelCheckpoint(
+        checkpoint_format,
+        monitor='val_loss',
+        verbose=1,
+        save_best_only=True,
+        save_weights_only=True,
+        mode='auto',
+        period=5,
+    )
+    callbacks.append(save_models_callback)
+
+    tensor_board_path = '/output/tensorboard'
+    save_tb_callback = keras.callbacks.TensorBoard(log_dir=tensor_board_path)
+    callbacks.append(save_tb_callback)
+
 
 def get_transfer_model():
     # import inception with pre-trained weights. do not include fully #connected layers
@@ -235,7 +228,7 @@ history_pretrained = model.fit_generator(
     verbose=1,
     validation_data=validation_generator,
     validation_steps=len(validation_generator),
-    callbacks=[missinglink_callback])
+    callbacks=callbacks)
 
 classes_in_training = len(seen_classes)
 
