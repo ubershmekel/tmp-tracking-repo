@@ -35,7 +35,7 @@ EXPERIMENT_NOTE = os.environ.get("EXPERIMENT_NOTE", "")
 DATA_ROOT = os.environ.get('DATA_ROOT', os.path.expanduser('~/sra/data/mldx-small'))
 
 OWNER_ID ='5cbb4c75-b52a-4386-af35-ce9ba735a4bb'
-PROJECT_TOKEN ='pxvamklbryBnaZUD'
+PROJECT_TOKEN ='ejHztrwUToiIucAA'
 
 # Hyper paramaters
 EPOCHS = int(os.environ.get("EPOCHS", "4"))
@@ -52,9 +52,11 @@ DATA_VOLUME_ID = int(os.environ.get("DATA_VOLUME_ID", "5685154290860032"))
 missinglink_callback = missinglink.KerasCallback(
     owner_id=OWNER_ID,
     project_token=PROJECT_TOKEN)
+
 missinglink_callback.set_properties(
     display_name=EXPERIMENT_NAME,
     description=EXPERIMENT_NOTE)
+
 missinglink_callback.set_hyperparams(
     MODEL=MODEL,
     SIMPLE_LAYER_DIMENSIONALITY=SIMPLE_LAYER_DIMENSIONALITY,
